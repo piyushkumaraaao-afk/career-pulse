@@ -19,7 +19,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from google import genai
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
