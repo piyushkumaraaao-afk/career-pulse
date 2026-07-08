@@ -594,8 +594,42 @@ async def ai_chat(body: ChatBody, user: dict = Depends(get_current_user)):
         "Give concise, practical, encouraging advice. Use markdown-lite (bullet points). Keep answers under 200 words. "
         f"\n\n{profile_ctx}"
     )
-    chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=session_id, system_message=system_msg).with_model(
-        "anthropic", "claude-sonnet-4-5-20250929"
+    import os
+from openai import OpenAI
+
+# 1. Initialize the client securely using environment variables
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+# 2. Maintain an in-memory session history (Use a database like PostgreSQL in production)
+conversation_history = [
+    {"role": "system", "content": "You are a helpful assistant integrated inside our custom app."}
+]
+
+def send_chat_message(user_input):
+    # Append the new user message to the history
+    conversation_history.append({"role": "user", "content": user_input})
+    
+    # Call the LLM with the entire context window
+    response = client.chat.completions.create(
+        model="gpt-4o", 
+        messages=conversation_history,
+        stream=True # Set to True to stream responses word-by-word
+    )
+    
+    # For a streaming setup, loop over incoming tokens
+    full_reply = ""
+    for chunk in response:
+        if chunk.choices[0].delta.content:
+            token = chunk.choices[0].delta.content
+            full_reply += token
+            # Yield or push this token straight to your frontend UI via WebSockets or SSE
+            print(token, end="", flush=True) 
+            
+    # Append the assistant's complete reply back to history for next time
+    conversation_history.append({"role": "assistant", "content": full_reply})
+
+# Example run
+send_chat_message("Hello! Can you help me navigate this application?")
     )
     try:
         resp = await chat.send_message(UserMessage(text=body.message))
