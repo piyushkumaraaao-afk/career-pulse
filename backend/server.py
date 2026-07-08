@@ -1421,7 +1421,8 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
-)if __name__ == "__main__":
+)
+if__name__ == "__main__":
     import uvicorn
     uvicorn.run(
         app,
